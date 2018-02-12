@@ -13,11 +13,9 @@ module.exports = function (RED) {
         node.on ('input', function (msg) {
         	//Réccupère le hotword définie dans les options du node win-listen
             let nl = nodeRED.nodes.getFlows();
-            for (i = 0; i < nl.flows.length; i++) {
-                if (nl.flows[i].type == "win-listen-config") {
-                    hotword=nl.flows[i].hotword;
-                }
-            } 
+            hotword = nl.flows.find(function IsListenCfg(NodeList) {
+  				return NodeList.type === 'win-listen-config';
+			}).hotword; 
 
             //détermine depuis combien de temps une commande n'a pas été prononcée.
             var timedif = Math.floor((Date.now() - lastcall)/1000);
@@ -27,7 +25,7 @@ module.exports = function (RED) {
             var cmdarr = text_Msg.split(" ");
 
             //Si présence du mot clé ou timout non dépassé on retransmer le msg
-            if ((cmdarr[0] == hotword)||(timedif<=tout)) {
+            if ((cmdarr[0].toLowerCase() == hotword.toLowerCase())||(timedif<=tout)) {
             node.send(msg);
             lastcall = Date.now();
             }
