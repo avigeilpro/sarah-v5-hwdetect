@@ -1,0 +1,24 @@
+{
+    "name": "hw-detect",
+    "version": "0.1",
+    "description": "Node-RED node to detect sarah hotword",
+    "homepage": "",
+    "dependencies": {
+
+    },
+    "keywords": ["node-red", "sarah", "hotword"],
+    "license": {
+        "type": "MIT",
+        "url": "https://www.opensource.org/licenses/mit-license.php"
+    },
+    "node-red": {
+        "version": ">=0.1",
+        "nodes": {
+            "hw-detect": "hw-detect.js"
+        }
+    },
+    "author": {
+        "name": "Avigeilpro",
+        "email": "avigeilpro@orange.fr"
+    }
+}
