@@ -1,48 +1,38 @@
-var TOutFct;	//Contiendra la fonction timeout
-var TOutFlag = true;	/*drapeau d'état du timeout :
-								- true => timeout actif, mot clé SARAH requit
-								- false => timeout inactif, mot clé SARAH facultatif */
-
 module.exports = function (RED) {
-    var request = require ('request');
-	const nodeRED = require ('node-red');
-
     function hwdetect (config) {
-        RED.nodes.createNode(this, config);
+        RED.nodes.createNode (this, config);
+        // Configuration options passed by Node Red
+        this.name = config.name;
         this.timeout = config.timeout * 1000;
-        var hotword = "";
+        // locals var's
         var node = this;
-        //initialise le status du node en rouge
-        node.status({fill:"red",shape:"ring",text:"hotword requit !"});
+        var nodeList = require ('node-red').nodes.getFlows().flows; // using node-red API function for retriving the flow-list
+        var TOutFct = null;
+
+        // Find hotword in node list with type = 'win-listen-config', if not find => setting "SARAH" by default
+        hotword = nodeList.find(function IsListenCfg(NodeList) {return NodeList.type === 'win-listen-config';}).hotword||"SARAH"; 
+
+        //set défault status red
+        node.status ({fill:"red", shape:"ring", text:"hotword requit !"});
 
         node.on ('input', function (msg) {
-        	//Réccupère le hotword définie dans les options du node win-listen
-            let nl = nodeRED.nodes.getFlows();
-            hotword = nl.flows.find(function IsListenCfg(NodeList) {
-  				return NodeList.type === 'win-listen-config';
-			}).hotword; 
-
-            //détermine depuis combien de temps une commande n'a pas été prononcée.
-
-            //Découpe la phrase aux espaces
-            var text_Msg = msg.payload.text;
-            var cmdarr = text_Msg.split(" ");
-
-            //Si présence du mot clé ou timout non dépassé on retransmer le msg
-            if ((cmdarr[0].toLowerCase() == hotword.toLowerCase())||(!TOutFlag)) {
-          		//retransmet le msg en sortie
-	            node.send(msg);
-	        	
-	        	//indique le status en vert, les commandes ne nécessitent pas le mot clé
-	            node.status({fill:"green",shape:"dot",text:"commandes libres"});
-	            TOutFlag=false;	//baisse le drapeau timeout pour permettre les commandes sans mot clé
-
-	            //désactive toute fonction timeout d'une précédente commande puis relance un nouveau timeout.
-	            clearTimeout(TOutFct);
-	            TOutFct = setTimeout(function(){
-	            				node.status({fill:"red",shape:"ring",text:"hotword requit !"});
-	            				TOutFlag=true;
-	            			}, node.timeout);
+            // Testing : hotword in message object OR active timeout ?
+            if (RegExp (hotword, 'i').test (msg.payload.text) || TOutFct) {
+                node.status({fill:"green",shape:"dot",text:"commandes libres"});
+                // Passing througt message
+                node.send (msg);
+                node.warn ('Commande envoyée !'); // must be removed !
+                // clearing previous timeout
+                clearTimeout (TOutFct);
+                // starting new timeout
+                TOutFct = setTimeout (function () {
+                    // After timeout events
+                    node.status ({fill:"red", shape:"ring", text:"hotword requit !"});
+                    TOutFct = null; // set timeout to null for future test
+                }, node.timeout);
+            } else {
+                node.status ({fill: "blue", shape: 'ring', text: 'hotword: ' + hotword});
+                node.warn ('Commande bloquée !'); // must be removed !
             }
         });
     }
