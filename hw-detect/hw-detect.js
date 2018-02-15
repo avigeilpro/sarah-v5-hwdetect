@@ -13,8 +13,6 @@ module.exports = function (RED) {
         for (var i=0; i < nodeList.length; i++) {
         	if (nodeList[i].type === 'win-listen-config') var hotword = nodeList[i].hotword || "SARAH";
 		}
-        //set défault status red
-        node.status ({fill:"red", shape:"ring", text:"hotword requit !"});
 
         node.on ('input', function (msg) {
             // Testing : hotword in message object OR active timeout ?
