@@ -10,8 +10,9 @@ module.exports = function (RED) {
         var TOutFct = null;
 
         // Find hotword in node list with type = 'win-listen-config', if not find => setting "SARAH" by default
-        hotword = nodeList.find(function IsListenCfg(NodeList) {return NodeList.type === 'win-listen-config';}).hotword||"SARAH"; 
-
+        for (var i=0; i < nodeList.length; i++) {
+        	if (nodeList[i].type === 'win-listen-config') var hotword = nodeList[i].hotword || "SARAH";
+		}
         //set défault status red
         node.status ({fill:"red", shape:"ring", text:"hotword requit !"});
 
